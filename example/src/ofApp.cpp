@@ -1,76 +1,76 @@
-#include "ofApp.h"
+#include "ofMain.h"
+#include "ofxSpinnaker.h"
+#include "ofxMachineVision.h"
+//#include "ofxGui.h"
 
-//--------------------------------------------------------------
-void ofApp::setup(){
-	auto deviceDescriptions = this->grabber.getDevice()->listDevices();
-	for (auto deviceDescription : deviceDescriptions) {
-		cout << deviceDescription.manufacturer << ", " << deviceDescription.model << endl;
+class ofApp : public ofBaseApp {
+
+	ofxMachineVision::SimpleGrabber<ofxMachineVision::Device::Spinnaker> grabber;
+	//string specsStr;
+	ofParameterGroup parameters;
+	//ofxPanel gui;
+
+	string getInfo(ofxMachineVision::SimpleGrabber<ofxMachineVision::Device::Spinnaker>& grabber) {
+		auto specs = grabber.getDeviceSpecification();
+		stringstream specsStream;
+		specsStream
+			<< "Manufacturer : " << specs.getManufacturer() << " \n"
+			<< "Model : " << specs.getModelName() << " \n"
+			<< "DeviceID : " << specs.getDeviceID() << " \n"
+			<< "Serial : " << specs.getSerialNumber() << " \n"
+			<< "Resolution : " << specs.getCaptureWidth() << "x" << specs.getCaptureHeight() << " \n"
+			<< "Fps : " << grabber.getFps() << " \n";
+		return specsStream.str();
 	}
-	this->grabber.open();
-	this->grabber.startCapture();
-}
 
-//--------------------------------------------------------------
-void ofApp::update(){
-	this->grabber.update();
-}
+	//--------------------------------------------------------------
+	void setup() {
+		cout << "Listing devices..." << endl;
+		auto deviceDescriptions = grabber.getDevice()->listDevices();
+		for (auto&& deviceDescription : deviceDescriptions) {
+			cout << deviceDescription.manufacturer << ", " << deviceDescription.model << endl;
+		}
 
-//--------------------------------------------------------------
-void ofApp::draw(){
-	this->grabber.draw(0, 0);
-}
+		cout << "Opening grabber..." << endl;
+		grabber.open();
 
-//--------------------------------------------------------------
-void ofApp::keyPressed(int key){
+		string info = getInfo(grabber);
+		cout << "Device Specifications:\n" << info << endl;
+		ofSetWindowTitle(info);
 
-}
+		cout << "Parameters:" << endl;
+		auto params = grabber.getDeviceParameters();
+		for (auto&& param : params) {
+			auto& p = param->getParameter();
+			cout << p.getName() << " " << p.type() << " " << p.valueType() << endl;
+		}
 
-//--------------------------------------------------------------
-void ofApp::keyReleased(int key){
+		cout << "Starting Capture..." << endl;
+		grabber.startCapture();
+	}
 
-}
+	//--------------------------------------------------------------
+	void update() {
+		grabber.update();
+	}
 
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
+	//--------------------------------------------------------------
+	void draw() {
+		grabber.draw(0, 0);
+		ofDrawBitmapStringHighlight(ofToString(grabber.getFps()), 10, 10);
+		ofSetWindowTitle(getInfo(grabber));
+	}
 
-}
+	//--------------------------------------------------------------
+	void keyPressed(int key) {
 
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
+	}
+};
 
-}
 
-//--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
+//========================================================================
+int main() {
+	ofSetupOpenGL(1024, 768, OF_WINDOW);
+	ofRunApp(new ofApp());
 
 }
